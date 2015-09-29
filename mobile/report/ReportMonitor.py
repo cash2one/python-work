@@ -64,6 +64,7 @@ class ReportMonitor(Monitor):
         file_write.write('\n')
 
     def stop_monitor(self):
+        sleep(5)
         self.is_stop = True
         print "monitor stop ..."
 

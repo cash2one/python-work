@@ -22,8 +22,6 @@ class JsonSerial(JsonBase):
             else:
                 self.monitor.urls_retry_failure.append(url)
         Util.printf('urlopen-->%s | exception--> %s' % (url, e))
-        import traceback
-        traceback.print_exc()
 
 
     def monitor_url_count(self, isTimeout, url):

@@ -29,40 +29,27 @@ class ReportJsonParallel(JsonParallel):
     def post_invoke(self):
         self.retry_timeout()
 
-        # union_store = self.monitor.union_store
-        # for k,v in self.monitor.map_store.items():
-        #     sohu_key = k + "_0"
-        #     wuliu_key = k + "_1"
-        #
-        #     if union_store.has_key(sohu_key):
-        #         report = union_store.get(sohu_key)
-        #         report.setdefault('cate_code',v.get('cate_code'))
-        #         report.setdefault('play_type',v.get('play_type'))
-        #         report.setdefault('video_play_time',v.get('video_play_time'))
-        #         report.setdefault('video_title',v.get('video_title'))
-        #         self.monitor.union_store[sohu_key]=report
-        #
-        #     if union_store.has_key(wuliu_key):
-        #         report = union_store.get(wuliu_key)
-        #         report.setdefault('cate_code',v.get('cate_code'))
-        #         report.setdefault('play_type',v.get('play_type'))
-        #         report.setdefault('video_play_time',v.get('video_play_time'))
-        #         report.setdefault('video_title',v.get('video_title'))
-        #         self.monitor.union_store[wuliu_key]=report
-
-        #self.mysqlWrap.save_url_vid(self.monitor.map_store)
-
-
 class ReportJsonSerial(JsonSerial):
     def __init__(self,  monitor,cpu=8):
         JsonSerial.__init__(self, monitor, cpu)
         self.url = 'http://my.tv.sohu.com/user/a/media/userGet.do?uid=%s'
 
+    def preprocess(self, url):
+        base_split = url.split('?')[1]
+        uid = base_split.split('=')[1]
+        return ({'uid': uid}, 0)
+
     def process(self, jsonVal, result):
+        uid = result.get('uid', 0)
+        is_user_share = 2
+
+        if jsonVal['data'] is None or len(jsonVal['data']) == 0:
+            self.monitor.uid_share_map.setdefault(str(uid), 2)
+            return (None, -1)
+
         isAlias = jsonVal['data']['isAlias']
         status = jsonVal['data']['status']
-        uid = jsonVal['data']['uid']
-        is_user_share = 2
+
         if isAlias == 0 and status == 1:
             is_user_share = 1
 
@@ -73,13 +60,3 @@ class ReportJsonSerial(JsonSerial):
 
     def post_invoke(self):
         self.retry_timeout()
-
-        # union_store = self.monitor.union_store
-        # for k,v in union_store.items():
-        #     uid = str(v.get('uid'))
-        #     if self.monitor.uid_share_map.has_key(uid):
-        #         v["is_video_share"] = 2
-        #     else:
-        #         v["is_video_share"] = 1
-        #     self.monitor.union_store[k]=v
-        #self.mysqlWrap.save_url_uid(self.monitor.uid_share_map)

@@ -192,9 +192,14 @@ if __name__ == '__main__':
             mydate = sys.argv[2]
 
         base_log = base_log+ "/" + mydate + "/"
-        print base_log
-        monitor_log = FileRead(None).map_store_recover(base_log+"monitor.union_store")
-        print monitor_log.get('71492753_1')
+        jobs_size = constants.myContants.keys().__len__() + 1
+        Util.file_mkdirs(os.path.dirname(base_log))
+
+        myThread = MyThread(myQueue,constants,jobs_size,monitor,base_log,MyDate(mydate))
+        myThread.start()
+
+        myQueue.put_singal('URLRequest')
+        myThread.sub_job_join()
 
     else:
         print "don't make trouble to me !"

@@ -70,11 +70,17 @@ class ReportJsonSerial(JsonSerial):
         return ({'uid': uid, 'vid': vid}, exitcode)
 
     def process(self, jsonVal, result):
-        isAlias = jsonVal['data']['isAlias']
-        status = jsonVal['data']['status']
         vid = result.get('vid', 0)
         uid = result.get('uid', 0)
         is_user_share = 2
+
+        if jsonVal['data'] is None or len(jsonVal['data']) == 0:
+            self.monitor.uid_share_map.setdefault(uid, is_user_share)
+            self.thread_lock(lambda x:self.vid_list.append(x),vid)
+            return (None, -1)
+
+        isAlias = jsonVal['data']['isAlias']
+        status = jsonVal['data']['status']
 
         if isAlias == 0 and status == 1:
             is_user_share = 1
